@@ -1,30 +1,23 @@
 [[headers]]
-  # 수정됨: .data.br 대신 .data.unityweb을 지정
-  for = "/Build/*.data.unityweb"
+  for = "/Build/*.data.br" # .data.br 파일 경로
   [headers.values]
-    # Content-Encoding을 "br"로 유지하여 브라우저에 압축 해제를 지시
     Content-Encoding = "br"
     Content-Type = "application/octet-stream"
 
 [[headers]]
-  # 수정됨: .wasm.br 대신 .wasm.unityweb을 지정
-  for = "/Build/*.wasm.unityweb"
+  for = "/Build/*.wasm.br" # .wasm.br 파일 경로
   [headers.values]
-    # Content-Encoding을 "br"로 유지
     Content-Encoding = "br"
     Content-Type = "application/wasm"
 
 [[headers]]
-  # 수정됨: .js.br 대신 .framework.js.unityweb을 지정
-  for = "/Build/*.framework.js.unityweb"
+  for = "/Build/*.js.br" # .js.br 파일 경로
   [headers.values]
-    # Content-Encoding을 "br"로 유지
     Content-Encoding = "br"
     Content-Type = "application/javascript"
 
 [[headers]]
-  # 안전을 위해 모든 .unityweb에 적용
-  for = "/Build/*.unityweb"
+  for = "/Build/*.unityweb.br" # .unityweb.br 파일 경로
   [headers.values]
     Content-Encoding = "br"
     Content-Type = "application/octet-stream"
