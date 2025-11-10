@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>학습 진행 · Unity WebGL (배경 제거)</title>
+    <title>학습 진행 · Unity WebGL (최종 완성)</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans/css/SpoqaHanSansNeo.css">
@@ -14,25 +14,25 @@
             --bg-grad-start:#D8E5FD; --bg-grad-end:#86AFF9; --blue:#256EF4;
             --gray-1:#F6F6F6; --gray-2:#E3E3E3; --text:#000;
         }
-        *{box-sizing:border-box} html,body{height:100%}
+        /* CSS 문법 오류 제거 및 구조 정리 */
+        *{box-sizing:border-box} 
+        html,body{height:100%}
         body{
-            margin:0; font-family:'Spoqa Han Sans Neo', Pretendard, system-ui, -apple-system, sans-serif;
-            background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
-            background-attachment:fixed;
+            margin:0; 
+            font-family:'Spoqa Han Sans Neo', Pretendard, system-ui, -apple-system, sans-serif; 
+            background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%); 
+            background-attachment:fixed; 
         }
         .right-sky { position:fixed; inset:auto 0 0 auto; top:0; right:0; width:var(--right-gutter); height:100vh; background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%); pointer-events:none; z-index:10; }
         .page{ display:flex; flex-direction:column; gap:var(--gap); padding:var(--gap); padding-right:calc(var(--gap) + var(--right-gutter)); background:transparent; }
         .main-card{ background:#fff; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,.08); padding:20px; display:flex; flex-direction:column; gap:20px; }
         
-        /* ------------------------------------------- */
         /* 2x2 바둑판 레이아웃 유지 */
-        /* ------------------------------------------- */
         .split{ display:flex; flex-direction: row; gap:var(--gap); align-items:flex-start; flex-wrap: nowrap; }
-        .left-col, .right-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; }
+        .left-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; }
+        .right-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; } /* ★ gap:10px로 복구 */
         .bottom{ display:flex; flex-direction: row; gap:20px; align-items:flex-start; flex-wrap: nowrap; }
         .mission-col, .result-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:0px; }
-        /* ------------------------------------------- */
-
 
         .title-bar{ height:50px; display:flex; justify-content:space-between; align-items:center; }
         .title-bar .wrap{ flex:1 1 0; padding:8px 10px; background:#D8E5FD; border-radius:8px; display:flex; justify-content:space-between; align-items:center; }
@@ -47,17 +47,16 @@
         .hud-card{ padding:10px 12px; background:rgba(0,0,0,.35); border-radius:8px; display:flex; align-items:center; gap:12px; color:#fff; }
         .round-36{ width:36px; height:36px; background:#D9D9D9; border-radius:9999px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
         
-        /* ★ 코드 에디터 영역 스타일 수정 */
-        .editor-area{ height:632px; display:flex; flex-direction:column; gap:16px; }
+        .right-col{ display: flex; flex-direction: column; gap: 10px; } /* ★ gap:10px로 복구 */
+        .editor-area{ height:592px; display:flex; flex-direction:column; gap:16px; } /* ★ 높이 592px로 재조정 */
         .codebox{ 
             flex: 1 1 auto; 
-            padding: 0; /* ★ 패딩 제거 */
-            background: transparent; /* ★ 배경 제거 */
-            border-radius: 0; /* ★ 둥근 모서리 제거 */
-            outline: none; /* ★ 외곽선 제거 */
+            padding: 0; 
+            background: transparent; 
+            border-radius: 0; 
+            outline: none; 
             min-height:0; 
         }
-        /* Monaco Editor 자체는 어두운 배경(theme: 'vs-dark')을 유지합니다. */
         #monaco { width: 100%; height: 100%; } 
         
         .btn-row{ display:flex; gap:16px; }
@@ -177,7 +176,7 @@
         </main>
     </div>
 
-    <script src="Build/PBL.loader.js"></script>
+    <script src="Build/20251107.loader.js"></script>
     <script>
         // Monaco Editor CDN 로드
         window.require = { paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } };
@@ -185,128 +184,137 @@
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.min.js"></script>
 
     <script>
+        // API 기본 주소 (실제 백엔드 서버 주소로 변경 필요)
+        const API_BASE = 'https://pbl.telosdev.net/'; 
         let editor; 
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const $log     = document.getElementById('logArea');
+            const $btnRun  = document.getElementById('btnRun');
+            const $btnCopy = document.getElementById('btnCopy');
+            const $btnLogClear = document.querySelector('.btn-gray');
 
-        function mountMonaco(){
-            require(['vs/editor/editor.main'], function () {
-                const mountEl = document.getElementById('monaco');
-                editor = monaco.editor.create(mountEl, {
-                    value: '# 여기에 코드를 작성하세요.',
-                    language: 'python', 
-                    theme: 'vs-dark',
-                    // Monaco Editor 내부의 자동 높이 조절 문제를 방지하기 위해 
-                    // 부모 컨테이너(editor-area)의 높이를 고정했습니다.
-                    automaticLayout: true,
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    padding: { top: 12, bottom: 12 }
+            function escapeHTML(s=''){
+                return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+            }
+            function setLogHTML(html){ $log.innerHTML = html; }
+            function showRunning(text){ $log.textContent = text || '실행 중...'; }
+            function showError(e){ $log.textContent = '요청 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e); }
+
+            // 실행 결과를 결과 창에 표시
+            function showRunResult(stdout, stderr, exitcode){
+                let html = '';
+                html += 'EXIT CODE: ' + (typeof exitcode==='number'? exitcode : String(exitcode)) + '\n\n';
+                html += '[STDOUT]\n' + (stdout && stdout.trim().length
+                    ? '<pre style="margin:0 0 12px;white-space:pre-wrap">'+escapeHTML(stdout)+'</pre>\n'
+                    : '(no output)\n\n');
+                if (stderr && stderr.trim().length){
+                    html += '[STDERR]\n<pre style="margin:0;white-space:pre-wrap;color:#b00020">'+escapeHTML(stderr)+'</pre>';
+                }
+                setLogHTML(html);
+            }
+            
+            // 코드 실행 메인 함수
+            async function runCode(){
+                try{
+                    const code = editor ? editor.getValue() : '';
+                    if (!code.trim()){
+                        return $log.textContent = '코드가 비어있습니다.';
+                    }
+                    
+                    showRunning('실행 중...');
+
+                    const r = await fetch(API_BASE + '/run', {
+                        method:'POST', 
+                        headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({ code: code, language: 'python', stdin: '' }) 
+                    });
+                    
+                    if (!r.ok) throw new Error(`API 요청 실패: ${r.status}`);
+
+                    const json = await r.json();
+
+                    if (json && json.ok){
+                        showRunResult(json.stdout||'', json.stderr||'', json.exitcode);
+                    }else{
+                        const msg = (json && json.error) ? json.error : '실행 실패';
+                        showError(msg);
+                    }
+                }catch(e){
+                    showError(e);
+                }
+            }
+            
+            // Monaco Editor 마운트
+            function mountMonaco(){
+                if (!window.require || !window.require.config) return;
+
+                require(['vs/editor/editor.main'], function () {
+                    const mountEl = document.getElementById('monaco');
+                    if (!mountEl) return console.error("Monaco mount element (#monaco) not found.");
+                    
+                    editor = monaco.editor.create(mountEl, {
+                        value: '# 여기에 코드를 작성하세요.',
+                        language: 'python', 
+                        theme: 'vs-dark',
+                        automaticLayout: true,
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        padding: { top: 12, bottom: 12 }
+                    });
+                    window.addEventListener('resize', () => editor.layout());
                 });
-                // 창 크기 변경 시 Monaco 레이아웃 업데이트
-                window.addEventListener('resize', () => editor.layout());
-            });
-        }
-        if (window.require && window.require.config) { mountMonaco(); }
+            }
 
-        //유니티 빌드 코드
-        var canvas = document.querySelector("#unity-canvas");
+            // Unity WebGL 초기화
+            (function(){
+                const canvas = document.getElementById('unity-canvas');
+                if (!canvas) return;
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/20251107.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/20251107.data",
-        frameworkUrl: buildUrl + "/20251107.framework.js",
-        codeUrl: buildUrl + "/20251107.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "PBL_test",
-        productVersion: "0.1.0",
-        showBanner: unityShowBanner,
-      };
-
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
-
-      document.querySelector("#unity-loading-bar").style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
+                const config = {
+                    dataUrl: "Build/20251107.data",
+                    frameworkUrl: "Build/20251107.framework.js",
+                    codeUrl: "Build/20251107.wasm",
+                    streamingAssetsUrl: "20251107/StreamingAssets",
+                    companyName: "DefaultCompany",
+                    productName: "PBL_Demo",
+                    productVersion: "0.1.0",
+                    devicePixelRatio: (window.devicePixelRatio || 1),
+                    matchWebGLToCanvasSize: true
                 };
 
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+                if (typeof createUnityInstance !== 'function') {
+                    console.warn('Unity loader가 로드되지 않았습니다.');
+                    return;
+                }
 
-      document.body.appendChild(script);
-        
+                createUnityInstance(canvas, config).then((inst)=>{
+                    window.unityInstance = inst;
+                }).catch(err=>{
+                    console.error(err);
+                    const wrap = canvas.parentElement;
+                    if (wrap){
+                        wrap.insertAdjacentHTML('beforeend',
+                            '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.6);font:600 16px Pretendard;">Unity 로드 실패 (콘솔 확인)</div>'
+                        );
+                    }
+                });
+            })();
+            
+            // 이벤트 리스너 연결
+            if ($btnRun) $btnRun.addEventListener('click', runCode);
+            if ($btnCopy) $btnCopy.addEventListener('click', ()=> {
+                console.log('코드 복사 버튼 클릭됨');
+            });
+            if ($btnLogClear) $btnLogClear.addEventListener('click', ()=>{
+                $log.textContent = '[ 실행 로그 자리 ]';
+            });
+
+            // Monaco Editor 마운트 실행
+            mountMonaco();
+        }); // End of DOMContentLoaded
     </script>
 </body>
 </html>
