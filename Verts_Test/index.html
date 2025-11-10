@@ -1,320 +1,363 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>학습 진행 · Unity WebGL (최종 완성)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>학습 진행 · Unity WebGL (최종 완성)</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans/css/SpoqaHanSansNeo.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans/css/SpoqaHanSansNeo.css">
 
-    <style>
-        :root{
-            --gap:20px; --card-pad:20px; --panel-h:252px; --right-gutter:20px;
-            --bg-grad-start:#D8E5FD; --bg-grad-end:#86AFF9; --blue:#256EF4;
-            --gray-1:#F6F6F6; --gray-2:#E3E3E3; --text:#000;
-        }
-        /* CSS 문법 오류 제거 및 구조 정리 */
-        *{box-sizing:border-box} 
-        html,body{height:100%}
-        body{
-            margin:0; 
-            font-family:'Spoqa Han Sans Neo', Pretendard, system-ui, -apple-system, sans-serif; 
-            background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%); 
-            background-attachment:fixed; 
-        }
-        .right-sky { position:fixed; inset:auto 0 0 auto; top:0; right:0; width:var(--right-gutter); height:100vh; background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%); pointer-events:none; z-index:10; }
-        .page{ display:flex; flex-direction:column; gap:var(--gap); padding:var(--gap); padding-right:calc(var(--gap) + var(--right-gutter)); background:transparent; }
-        .main-card{ background:#fff; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,.08); padding:20px; display:flex; flex-direction:column; gap:20px; }
-        
-        /* 2x2 바둑판 레이아웃 유지 */
-        .split{ display:flex; flex-direction: row; gap:var(--gap); align-items:flex-start; flex-wrap: nowrap; }
-        .left-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; }
-        .right-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; } /* ★ gap:10px로 복구 */
-        .bottom{ display:flex; flex-direction: row; gap:20px; align-items:flex-start; flex-wrap: nowrap; }
-        .mission-col, .result-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:0px; }
+  <style>
+    :root{
+      --gap:20px; --card-pad:20px; --panel-h:252px; --right-gutter:20px;
+      --bg-grad-start:#D8E5FD; --bg-grad-end:#86AFF9; --blue:#256EF4;
+      --gray-1:#F6F6F6; --gray-2:#E3E3E3; --text:#000;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Spoqa Han Sans Neo', Pretendard, system-ui, -apple-system, sans-serif;
+      background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+      background-attachment:fixed;
+    }
+    .right-sky { position:fixed; inset:auto 0 0 auto; top:0; right:0; width:var(--right-gutter); height:100vh; background:linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%); pointer-events:none; z-index:10; }
+    .page{ display:flex; flex-direction:column; gap:var(--gap); padding:var(--gap); padding-right:calc(var(--gap) + var(--right-gutter)); background:transparent; }
+    .main-card{ background:#fff; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,.08); padding:20px; display:flex; flex-direction:column; gap:20px; }
 
-        .title-bar{ height:50px; display:flex; justify-content:space-between; align-items:center; }
-        .title-bar .wrap{ flex:1 1 0; padding:8px 10px; background:#D8E5FD; border-radius:8px; display:flex; justify-content:space-between; align-items:center; }
-        .title-bar .left{ display:flex; align-items:center; gap:10px; }
-        .label-chip{ padding:4px 10px; background:#fff; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--blue); font:700 20px 'Spoqa Han Sans Neo'; line-height:28px; }
-        .title-txt{ color:#000; font:700 20px 'Spoqa Han Sans Neo'; line-height:28px; }
-        .webgl{ height:552px; border-radius:8px; border:1px solid var(--gray-2); overflow:hidden; position:relative; background:#000; }
-        #unity-canvas{ width:100%; height:100%; display:block; background:#000; } 
-        .hud-badge{ position:absolute; z-index:3; pointer-events:none; }
-        .hud-left{ left:8px; top:8px; }
-        .hud-right{ right:8px; top:8px; }
-        .hud-card{ padding:10px 12px; background:rgba(0,0,0,.35); border-radius:8px; display:flex; align-items:center; gap:12px; color:#fff; }
-        .round-36{ width:36px; height:36px; background:#D9D9D9; border-radius:9999px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-        
-        .right-col{ display: flex; flex-direction: column; gap: 10px; } /* ★ gap:10px로 복구 */
-        .editor-area{ height:592px; display:flex; flex-direction:column; gap:16px; } /* ★ 높이 592px로 재조정 */
-        .codebox{ 
-            flex: 1 1 auto; 
-            padding: 0; 
-            background: transparent; 
-            border-radius: 0; 
-            outline: none; 
-            min-height:0; 
-        }
-        #monaco { width: 100%; height: 100%; } 
-        
-        .btn-row{ display:flex; gap:16px; }
-        .btn{ flex:1 1 0; height:48px; border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer; font:500 16px 'Spoqa Han Sans Neo'; }
-        .btn.run{ background:#256EF4; color:#fff; }
-        .btn.copy{ background:#D8E5FD; outline:1px #0B50D0 solid; color:#0B50D0; }
-        
-        .mission-head{ display:flex; justify-content:space-between; align-items:center; }
-        .mission-title{ font:700 20px 'Spoqa Han Sans Neo'; }
-        .mission-tabs{ padding:4px 6px; background:#D8E5FD; border-radius:6px; display:flex; align-items:center; }
-        .mission-tabs .slot{ width:71px; display:flex; align-items:center; justify-content:center; color:#646464; font:500 14px 'Spoqa Han Sans Neo'; padding:4px 8px; }
-        .mission-tabs .slot.active{ background:#fff; color:var(--blue); border-radius:100px; font-weight:700; }
-        .nav-circles{ display:flex; gap:6px; }
-        .nav-circles .circle{ width:26px; height:26px; background:#D8D8D8; border-radius:9999px; display:flex; align-items:center; justify-content:center; }
-        .mission-box, .result-box{ height:var(--panel-h); padding:20px; background:#F6F6F6; border-radius:8px; outline:1px var(--gray-2) solid; display:flex; flex-direction:column; gap:8px; overflow:auto; }
-        .result-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 5px; gap:12px; flex-wrap:nowrap; }
-        .btn-gray{ height:36px; padding:0 12px; background:#787878; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font:500 14px 'Spoqa Han Sans Neo'; white-space:nowrap; }
-        
-    </style>
+    .split{ display:flex; flex-direction: row; gap:var(--gap); align-items:flex-start; flex-wrap: nowrap; }
+    .left-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; }
+    .right-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:10px; }
+    .bottom{ display:flex; flex-direction: row; gap:20px; align-items:flex-start; flex-wrap: nowrap; }
+    .mission-col, .result-col{ flex:1 1 50%; min-width:0; display:flex; flex-direction:column; gap:0px; }
+
+    .title-bar{ height:50px; display:flex; justify-content:space-between; align-items:center; }
+    .title-bar .wrap{ flex:1 1 0; padding:8px 10px; background:#D8E5FD; border-radius:8px; display:flex; justify-content:space-between; align-items:center; }
+    .title-bar .left{ display:flex; align-items:center; gap:10px; }
+    .label-chip{ padding:4px 10px; background:#fff; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--blue); font:700 20px 'Spoqa Han Sans Neo'; line-height:28px; }
+    .title-txt{ color:#000; font:700 20px 'Spoqa Han Sans Neo'; line-height:28px; }
+
+    .webgl{ height:552px; border-radius:8px; border:1px solid var(--gray-2); overflow:hidden; position:relative; background:#000; }
+    #unity-canvas{ width:100%; height:100%; display:block; background:#000; }
+    .hud-badge{ position:absolute; z-index:3; pointer-events:none; }
+    .hud-left{ left:8px; top:8px; }
+    .hud-right{ right:8px; top:8px; }
+    .hud-card{ padding:10px 12px; background:rgba(0,0,0,.35); border-radius:8px; display:flex; align-items:center; gap:12px; color:#fff; }
+    .round-36{ width:36px; height:36px; background:#D9D9D9; border-radius:9999px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+
+    .editor-area{ height:592px; display:flex; flex-direction:column; gap:16px; }
+    .codebox{ flex:1 1 auto; padding:0; background:transparent; border-radius:0; outline:none; min-height:0; }
+    #monaco { width:100%; height:100%; }
+
+    .btn-row{ display:flex; gap:16px; }
+    .btn{ flex:1 1 0; height:48px; border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer; font:500 16px 'Spoqa Han Sans Neo'; user-select:none; }
+    .btn.run{ background:#256EF4; color:#fff; }
+    .btn.copy{ background:#D8E5FD; outline:1px #0B50D0 solid; color:#0B50D0; }
+
+    .mission-head{ display:flex; justify-content:space-between; align-items:center; }
+    .mission-title{ font:700 20px 'Spoqa Han Sans Neo'; }
+    .mission-tabs{ padding:4px 6px; background:#D8E5FD; border-radius:6px; display:flex; align-items:center; }
+    .mission-tabs .slot{ width:71px; display:flex; align-items:center; justify-content:center; color:#646464; font:500 14px 'Spoqa Han Sans Neo'; padding:4px 8px; }
+    .mission-tabs .slot.active{ background:#fff; color:var(--blue); border-radius:100px; font-weight:700; }
+    .nav-circles{ display:flex; gap:6px; }
+    .nav-circles .circle{ width:26px; height:26px; background:#D8D8D8; border-radius:9999px; display:flex; align-items:center; justify-content:center; }
+
+    .mission-box, .result-box{ height:var(--panel-h); padding:20px; background:#F6F6F6; border-radius:8px; outline:1px var(--gray-2) solid; display:flex; flex-direction:column; gap:8px; overflow:auto; }
+    .result-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 5px; gap:12px; flex-wrap:nowrap; }
+    .btn-gray{ height:36px; padding:0 12px; background:#787878; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font:500 14px 'Spoqa Han Sans Neo'; white-space:nowrap; }
+    .pill{ padding:2px 8px; border-radius:9999px; font-size:12px; line-height:18px; }
+  </style>
 </head>
 <body>
-    <div class="right-sky"></div>
+  <div class="right-sky"></div>
 
-    <div class="page">
-        <main class="main">
-            <section class="main-card">
-                <div class="split">
-                    <div class="left-col">
-                        <div class="title-bar">
-                            <div class="wrap" style="background:transparent; padding:0;">
-                                <div class="left">
-                                    <div class="label-chip">과정 4-1</div>
-                                    <div class="title-txt">아크 원자로 복원</div>
-                                </div>
-                                <div class="right">
-                                    <div style="padding:2px 10px; background:#F6F6F6; border-radius:50px;">
-                                        <span style="color:#33363D; font:400 12px Pretendard;">난이도 중</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="webgl">
-                            <canvas id="unity-canvas" tabindex="-1"></canvas>
-                            <div class="hud-badge hud-left">
-                                <div class="hud-card">
-                                    <div class="round-36" style="background:#86AFF9;"></div>
-                                    <div style="display:flex; flex-direction:column; gap:4px;">
-                                        <div style="color:#fff; font:700 14px 'Spoqa Han Sans Neo'">감귤</div>
-                                        <div class="pill" style="align-self:flex-start; background:#C0C0C0; color:#33363D; font-weight:600;">Lv.3</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hud-badge hud-right">
-                                <div class="hud-card team" style="gap:8px;">
-                                    <div style="width:36px; height:36px; background:#86AFF9; border-radius:4px;"></div>
-                                    <div style="color:#fff; font:600 14px 'Spoqa Han Sans Neo'">Team 1</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="right-col">
-                        <div style="padding:8px 6px; font:700 20px 'Spoqa Han Sans Neo'">코드 에디터</div>
-                        <div class="editor-area">
-                            <div class="codebox">
-                                <div id="monaco"></div>
-                            </div>
-                            <div class="btn-row">
-                                <div id="btnCopy" class="btn copy">코드 복사</div>
-                                <div id="btnRun" class="btn run">코드 실행</div>
-                            </div>
-                        </div>
-                    </div>
+  <div class="page">
+    <main class="main">
+      <section class="main-card">
+        <div class="split">
+          <div class="left-col">
+            <div class="title-bar">
+              <div class="wrap" style="background:transparent; padding:0;">
+                <div class="left">
+                  <div class="label-chip">과정 4-1</div>
+                  <div class="title-txt">아크 원자로 복원</div>
                 </div>
-
-                <div class="bottom">
-                    <div class="mission-col">
-                        <div class="mission-head">
-                            <div style="display:flex; align-items:center; gap:32px;">
-                                <div class="mission-title">미션</div>
-                                <div class="mission-tabs">
-                                    <div class="slot active">수행 과제</div>
-                                    <div class="slot">세부 내용</div>
-                                    <div class="slot">제약 조건</div>
-                                    <div class="slot">개발 환경</div>
-                                    <div class="slot">획득 역량</div>
-                                </div>
-                            </div>
-                            <div class="nav-circles">
-                                <div class="circle" style="background:#A1A1A1;"></div>
-                                <div class="circle" style="background:#A1A1A1;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mission-box">
-                            <div style="color:#000; font:400 16px 'Spoqa Han Sans Neo'">
-                                <p>1. 관리 로봇에 접속하기</p>
-                                <p style="margin-left:20px; margin-top:-10px; color:#646464;">노트북을 사용하여 관리 로봇에 접속하세요.</p>
-                                <p>2. 암호 해제하기</p>
-                                <p style="margin-left:20px; margin-top:-10px; color:#646464;">Hello, World!를 출력해 로봇의 보안 시스템을 해제하세요.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="result-col">
-                        <div class="result-head">
-                            <div style="font:700 20px 'Spoqa Han Sans Neo'">결과</div>
-                            <div class="btn-gray">로그 삭제</div>
-                        </div>
-                        <div class="result-box">
-                            <div id="logArea" style="color:#646464; font:400 16px 'Spoqa Han Sans Neo'">[ 실행 로그 자리 ]</div>
-                        </div>
-                    </div>
+                <div class="right">
+                  <div style="padding:2px 10px; background:#F6F6F6; border-radius:50px;">
+                    <span style="color:#33363D; font:400 12px Pretendard;">난이도 중</span>
+                  </div>
                 </div>
-            </section>
-        </main>
-    </div>
+              </div>
+            </div>
 
-    <script src="Build/Verts_Test.loader.js"></script>
-    <script>
-        // Monaco Editor CDN 로드
-        window.require = { paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.min.js"></script>
+            <div class="webgl">
+              <canvas id="unity-canvas" tabindex="-1"></canvas>
+              <div class="hud-badge hud-left">
+                <div class="hud-card">
+                  <div class="round-36" style="background:#86AFF9;"></div>
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="color:#fff; font:700 14px 'Spoqa Han Sans Neo'">감귤</div>
+                    <div class="pill" style="align-self:flex-start; background:#C0C0C0; color:#33363D; font-weight:600;">Lv.3</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hud-badge hud-right">
+                <div class="hud-card team" style="gap:8px;">
+                  <div style="width:36px; height:36px; background:#86AFF9; border-radius:4px;"></div>
+                  <div style="color:#fff; font:600 14px 'Spoqa Han Sans Neo'">Team 1</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    <script>
-        // API 기본 주소 (실제 백엔드 서버 주소로 변경 필요)
-        const API_BASE = 'https://pbl.telosdev.net/'; 
-        let editor; 
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            const $log     = document.getElementById('logArea');
-            const $btnRun  = document.getElementById('btnRun');
-            const $btnCopy = document.getElementById('btnCopy');
-            const $btnLogClear = document.querySelector('.btn-gray');
+          <div class="right-col">
+            <div style="padding:8px 6px; font:700 20px 'Spoqa Han Sans Neo'">코드 에디터</div>
+            <div class="editor-area">
+              <div class="codebox">
+                <div id="monaco"></div>
+              </div>
+              <div class="btn-row">
+                <div id="btnCopy" class="btn copy">코드 복사</div>
+                <div id="btnRun" class="btn run">코드 실행</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            function escapeHTML(s=''){
-                return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+        <div class="bottom">
+          <div class="mission-col">
+            <div class="mission-head">
+              <div style="display:flex; align-items:center; gap:32px;">
+                <div class="mission-title">미션</div>
+                <div class="mission-tabs">
+                  <div class="slot active">수행 과제</div>
+                  <div class="slot">세부 내용</div>
+                  <div class="slot">제약 조건</div>
+                  <div class="slot">개발 환경</div>
+                  <div class="slot">획득 역량</div>
+                </div>
+              </div>
+              <div class="nav-circles">
+                <div class="circle" style="background:#A1A1A1;"></div>
+                <div class="circle" style="background:#A1A1A1;"></div>
+              </div>
+            </div>
+
+            <div class="mission-box">
+              <div style="color:#000; font:400 16px 'Spoqa Han Sans Neo'">
+                <p>1. 관리 로봇에 접속하기</p>
+                <p style="margin-left:20px; margin-top:-10px; color:#646464;">노트북을 사용하여 관리 로봇에 접속하세요.</p>
+                <p>2. 암호 해제하기</p>
+                <p style="margin-left:20px; margin-top:-10px; color:#646464;">Hello, World!를 출력해 로봇의 보안 시스템을 해제하세요.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-col">
+            <div class="result-head">
+              <div style="font:700 20px 'Spoqa Han Sans Neo'">결과</div>
+              <div class="btn-gray" id="btnLogClear">로그 삭제</div>
+            </div>
+            <div class="result-box">
+              <div id="logArea" style="color:#646464; font:400 16px 'Spoqa Han Sans Neo'">[ 실행 로그 자리 ]</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Unity Loader: Brotli 사전압축(.br) 파일을 직접 로드 -->
+  <!-- 서버가 반드시 Content-Encoding: br, 올바른 Content-Type을 설정해야 합니다 -->
+  <script src="Build/Verts_Test.loader.js.br"></script>
+
+  <!-- Monaco Editor CDN -->
+  <script>
+    window.require = { paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.min.js"></script>
+
+  <script>
+    (function(){
+      // ===== 유틸 =====
+      function escapeHTML(s=''){
+        return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+      }
+      function joinURL(base, path){
+        if(!base) return path || '';
+        if(!path) return base;
+        const b = base.endsWith('/') ? base.slice(0,-1) : base;
+        const p = path.startsWith('/') ? path.slice(1) : path;
+        return b + '/' + p;
+      }
+
+      // ===== 상태 =====
+      const API_BASE = 'https://pbl.telosdev.net'; // base 끝 슬래시 제거
+      let editor;
+
+      document.addEventListener('DOMContentLoaded', function(){
+        const $log         = document.getElementById('logArea');
+        const $btnRun      = document.getElementById('btnRun');
+        const $btnCopy     = document.getElementById('btnCopy');
+        const $btnLogClear = document.getElementById('btnLogClear');
+
+        function setLogHTML(html){ $log.innerHTML = html; }
+        function setLogText(text){ $log.textContent = text; }
+        function showRunning(text){ setLogText(text || '실행 중...'); }
+        function showError(e){
+          const msg = (e && e.message) ? e.message : String(e);
+          setLogText('요청 중 오류가 발생했습니다: ' + msg);
+        }
+
+        function showRunResult(stdout, stderr, exitcode){
+          let html = '';
+          html += '<div><strong>EXIT CODE:</strong> ' + escapeHTML(String(typeof exitcode==='number'? exitcode : exitcode)) + '</div>';
+          html += '<div style="margin-top:8px;"><strong>[STDOUT]</strong></div>';
+          html += (stdout && stdout.trim().length)
+            ? '<pre style="margin:4px 0 12px;white-space:pre-wrap">'+escapeHTML(stdout)+'</pre>'
+            : '<div style="margin-bottom:12px;color:#888">(no output)</div>';
+          if (stderr && stderr.trim().length){
+            html += '<div><strong>[STDERR]</strong></div>';
+            html += '<pre style="margin:4px 0 0;white-space:pre-wrap;color:#b00020">'+escapeHTML(stderr)+'</pre>';
+          }
+          setLogHTML(html);
+        }
+
+        async function runCode(){
+          try{
+            const code = editor ? editor.getValue() : '';
+            if (!code.trim()){
+              return setLogText('코드가 비어있습니다.');
             }
-            function setLogHTML(html){ $log.innerHTML = html; }
-            function showRunning(text){ $log.textContent = text || '실행 중...'; }
-            function showError(e){ $log.textContent = '요청 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e); }
+            showRunning();
 
-            // 실행 결과를 결과 창에 표시
-            function showRunResult(stdout, stderr, exitcode){
-                let html = '';
-                html += 'EXIT CODE: ' + (typeof exitcode==='number'? exitcode : String(exitcode)) + '\n\n';
-                html += '[STDOUT]\n' + (stdout && stdout.trim().length
-                    ? '<pre style="margin:0 0 12px;white-space:pre-wrap">'+escapeHTML(stdout)+'</pre>\n'
-                    : '(no output)\n\n');
-                if (stderr && stderr.trim().length){
-                    html += '[STDERR]\n<pre style="margin:0;white-space:pre-wrap;color:#b00020">'+escapeHTML(stderr)+'</pre>';
-                }
-                setLogHTML(html);
-            }
-            
-            // 코드 실행 메인 함수
-            async function runCode(){
-                try{
-                    const code = editor ? editor.getValue() : '';
-                    if (!code.trim()){
-                        return $log.textContent = '코드가 비어있습니다.';
-                    }
-                    
-                    showRunning('실행 중...');
-
-                    const r = await fetch(API_BASE + '/run', {
-                        method:'POST', 
-                        headers:{'Content-Type':'application/json'},
-                        body: JSON.stringify({ code: code, language: 'python', stdin: '' }) 
-                    });
-                    
-                    if (!r.ok) throw new Error(`API 요청 실패: ${r.status}`);
-
-                    const json = await r.json();
-
-                    if (json && json.ok){
-                        showRunResult(json.stdout||'', json.stderr||'', json.exitcode);
-                    }else{
-                        const msg = (json && json.error) ? json.error : '실행 실패';
-                        showError(msg);
-                    }
-                }catch(e){
-                    showError(e);
-                }
-            }
-            
-            // Monaco Editor 마운트
-            function mountMonaco(){
-                if (!window.require || !window.require.config) return;
-
-                require(['vs/editor/editor.main'], function () {
-                    const mountEl = document.getElementById('monaco');
-                    if (!mountEl) return console.error("Monaco mount element (#monaco) not found.");
-                    
-                    editor = monaco.editor.create(mountEl, {
-                        value: '# 여기에 코드를 작성하세요.',
-                        language: 'python', 
-                        theme: 'vs-dark',
-                        automaticLayout: true,
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        padding: { top: 12, bottom: 12 }
-                    });
-                    window.addEventListener('resize', () => editor.layout());
-                });
-            }
-
-            // Unity WebGL 초기화
-            (function(){
-                const canvas = document.getElementById('unity-canvas');
-                if (!canvas) return;
-
-                const config = {
-                    dataUrl: "Build/Verts_Test.data",
-                    frameworkUrl: "Build/Verts_Test.framework.js",
-                    codeUrl: "Build/Verts_Test.wasm",
-                    streamingAssetsUrl: "Verts_Test/StreamingAssets",
-                    companyName: "DefaultCompany",
-                    productName: "PBL_Demo",
-                    productVersion: "0.1.0",
-                    devicePixelRatio: (window.devicePixelRatio || 1),
-                    matchWebGLToCanvasSize: true
-                };
-
-                if (typeof createUnityInstance !== 'function') {
-                    console.warn('Unity loader가 로드되지 않았습니다.');
-                    return;
-                }
-
-                createUnityInstance(canvas, config).then((inst)=>{
-                    window.unityInstance = inst;
-                }).catch(err=>{
-                    console.error(err);
-                    const wrap = canvas.parentElement;
-                    if (wrap){
-                        wrap.insertAdjacentHTML('beforeend',
-                            '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.6);font:600 16px Pretendard;">Unity 로드 실패 (콘솔 확인)</div>'
-                        );
-                    }
-                });
-            })();
-            
-            // 이벤트 리스너 연결
-            if ($btnRun) $btnRun.addEventListener('click', runCode);
-            if ($btnCopy) $btnCopy.addEventListener('click', ()=> {
-                console.log('코드 복사 버튼 클릭됨');
-            });
-            if ($btnLogClear) $btnLogClear.addEventListener('click', ()=>{
-                $log.textContent = '[ 실행 로그 자리 ]';
+            const r = await fetch(joinURL(API_BASE, '/run'), {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ code: code, language: 'python', stdin: '' })
             });
 
-            // Monaco Editor 마운트 실행
-            mountMonaco();
-        }); // End of DOMContentLoaded
-    </script>
+            if (!r.ok){
+              throw new Error(`API 요청 실패 (HTTP ${r.status})`);
+            }
+
+            const json = await r.json();
+            if (json && json.ok){
+              showRunResult(json.stdout||'', json.stderr||'', json.exitcode);
+            }else{
+              const msg = (json && (json.error || json.message)) ? (json.error || json.message) : '실행 실패';
+              showError(msg);
+            }
+          }catch(e){
+            showError(e);
+          }
+        }
+
+        function mountMonaco(){
+          if (!window.require || !window.require.config){
+            setLogText('에디터 로더가 준비되지 않았습니다. 네트워크 상태를 확인하세요.');
+            return;
+          }
+          require(['vs/editor/editor.main'], function(){
+            const mountEl = document.getElementById('monaco');
+            if (!mountEl){
+              console.error('Monaco mount element (#monaco) not found.');
+              return;
+            }
+            editor = monaco.editor.create(mountEl, {
+              value: '# 여기에 코드를 작성하세요.\nprint(\"Hello, World!\")',
+              language: 'python',
+              theme: 'vs-dark',
+              automaticLayout: true,
+              minimap: { enabled: false },
+              fontSize: 14,
+              lineNumbers: 'on',
+              padding: { top: 12, bottom: 12 }
+            });
+            window.addEventListener('resize', () => editor.layout());
+          }, function(err){
+            console.error(err);
+            setLogText('Monaco Editor 로드 실패: 콘솔을 확인하세요.');
+          });
+        }
+
+        // Unity 초기화(Brotli 자원 경로)
+        (function initUnity(){
+          const canvas = document.getElementById('unity-canvas');
+          if (!canvas) return;
+
+          const config = {
+            dataUrl: "Build/Verts_Test.data.br",
+            frameworkUrl: "Build/Verts_Test.framework.js.br",
+            codeUrl: "Build/Verts_Test.wasm.br",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "PBL_Demo",
+            productVersion: "0.1.0",
+            devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+            matchWebGLToCanvasSize: true
+          };
+
+          if (typeof createUnityInstance !== 'function') {
+            console.warn('Unity loader가 로드되지 않았습니다. (Brotli .br 파일을 로드하려면 서버 Content-Encoding 설정이 필요합니다)');
+            const wrap = canvas.parentElement;
+            if (wrap){
+              wrap.insertAdjacentHTML('beforeend',
+                '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.6);font:600 14px Pretendard;text-align:center;padding:12px;">' +
+                'Unity 로더가 준비되지 않았습니다.<br>.loader.js.br 응답의 Content-Encoding, Content-Type을 확인하세요.' +
+                '</div>'
+              );
+            }
+            return;
+          }
+
+          createUnityInstance(canvas, config).then((inst)=>{
+            window.unityInstance = inst;
+          }).catch(err=>{
+            console.error(err);
+            const wrap = canvas.parentElement;
+            if (wrap){
+              wrap.insertAdjacentHTML('beforeend',
+                '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.6);font:600 14px Pretendard;">Unity 로드 실패 (콘솔 확인)</div>'
+              );
+            }
+          });
+        })();
+
+        // 이벤트
+        if ($btnRun) $btnRun.addEventListener('click', runCode);
+        if ($btnCopy) $btnCopy.addEventListener('click', async ()=>{
+          try{
+            const text = editor ? editor.getValue() : '';
+            if (!text){
+              setLogText('복사할 코드가 없습니다.');
+              return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText){
+              await navigator.clipboard.writeText(text);
+              setLogText('코드가 클립보드에 복사되었습니다.');
+            }else{
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              setLogText('코드가 클립보드에 복사되었습니다. (fallback)');
+            }
+          }catch(e){
+            showError(e);
+          }
+        });
+        if ($btnLogClear) $btnLogClear.addEventListener('click', ()=>{
+          setLogText('[ 실행 로그 자리 ]');
+        });
+
+        // Monaco
+        mountMonaco();
+      });
+    })();
+  </script>
 </body>
 </html>
